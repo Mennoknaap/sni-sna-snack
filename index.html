@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>SNI SNA SNACKKKK!!!!!!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(270deg, #ff00cc, #3333ff, #00ffee, #ffcc00);
+      background-size: 800% 800%;
+      animation: gradientMove 15s ease infinite;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: rgba(0,0,0,0.4);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      font-weight: 900;
+      text-shadow: 0 0 10px #fff, 0 0 20px #ff00cc, 0 0 30px #3333ff;
+    }
+
+    .countdown {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .time-box {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      min-width: 90px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+    }
+
+    .number {
+      font-size: 2.5rem;
+      font-weight: 600;
+    }
+
+    .label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .emoji {
+      font-size: 2rem;
+      margin-top: 15px;
+      animation: bounce 1s infinite alternate;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>SNI SNA SNACKKKK!!!!!!</h1>
+
+  <div class="countdown">
+    <div class="time-box">
+      <div class="number" id="days">0</div>
+      <div class="label">Dagen</div>
+    </div>
+    <div class="time-box">
+      <div class="number" id="hours">0</div>
+      <div class="label">Uren</div>
+    </div>
+    <div class="time-box">
+      <div class="number" id="minutes">0</div>
+      <div class="label">Minuten</div>
+    </div>
+    <div class="time-box">
+      <div class="number" id="seconds">0</div>
+      <div class="label">Seconden</div>
+    </div>
+  </div>
+
+  <div class="emoji">🍟🍕🍔🍿</div>
+</div>
+
+<footer>
+Snack countdown powered by pure snack energy ⚡
+</footer>
+
+<script>
+function getNextFriday1230Amsterdam() {
+  const now = new Date();
+
+  // Maak datum in Amsterdam timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false
+  });
+
+  const parts = formatter.formatToParts(now);
+  const map = {};
+  parts.forEach(p => map[p.type] = p.value);
+
+  let amsterdamNow = new Date(
+    map.year,
+    map.month - 1,
+    map.day,
+    map.hour,
+    map.minute,
+    map.second
+  );
+
+  let day = amsterdamNow.getDay();
+  let daysUntilFriday = (5 - day + 7) % 7;
+
+  let target = new Date(amsterdamNow);
+  target.setDate(amsterdamNow.getDate() + daysUntilFriday);
+  target.setHours(12, 30, 0, 0);
+
+  if (daysUntilFriday === 0 && amsterdamNow > target) {
+    target.setDate(target.getDate() + 7);
+  }
+
+  return target;
+}
+
+const targetDate = getNextFriday1230Amsterdam();
+
+function updateCountdown() {
+  const now = new Date();
+  const diff = targetDate - now;
+
+  if (diff <= 0) {
+    document.querySelector(".container").innerHTML =
+      "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1>";
+    return;
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  document.getElementById("days").textContent = days;
+  document.getElementById("hours").textContent = hours;
+  document.getElementById("minutes").textContent = minutes;
+  document.getElementById("seconds").textContent = seconds;
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
+</script>
+
+</body>
+</html>
