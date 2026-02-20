@@ -5,7 +5,6 @@
   <title>SNI SNA SNACKKKK!!!!!!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;900&display=swap" rel="stylesheet">
 
   <style>
@@ -30,69 +29,99 @@
       100% { background-position: 0% 50%; }
     }
 
+    /* GROTERE MAIN BOX */
     .container {
-      background: rgba(0,0,0,0.4);
-      padding: 40px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.45);
+      padding: 70px 90px;
+      border-radius: 30px;
+      backdrop-filter: blur(15px);
+      box-shadow: 
+        0 0 40px rgba(0,0,0,0.6),
+        0 0 80px rgba(255,255,255,0.2);
       animation: float 4s ease-in-out infinite;
+      transform: scale(1.15);
     }
 
     @keyframes float {
-      0%,100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+      0%,100% { transform: translateY(0px) scale(1.15); }
+      50% { transform: translateY(-15px) scale(1.15); }
     }
 
+    /* GROTERE TITEL */
     h1 {
-      font-size: 3rem;
-      margin-bottom: 20px;
+      font-size: 4.5rem;
+      margin-bottom: 35px;
       font-weight: 900;
-      text-shadow: 0 0 10px #fff, 0 0 20px #ff00cc, 0 0 30px #3333ff;
+      text-shadow: 
+        0 0 10px #fff,
+        0 0 20px #ff00cc,
+        0 0 40px #3333ff;
     }
 
     .countdown {
       display: flex;
-      gap: 20px;
+      gap: 30px;
       justify-content: center;
       flex-wrap: wrap;
     }
 
+    /* GROTERE TIJD BOXEN */
     .time-box {
-      background: rgba(255,255,255,0.1);
-      padding: 20px;
-      border-radius: 15px;
-      min-width: 90px;
-      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      border-radius: 20px;
+      min-width: 130px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.4);
     }
 
     .number {
-      font-size: 2.5rem;
+      font-size: 3.5rem;
       font-weight: 600;
     }
 
     .label {
-      font-size: 0.9rem;
-      opacity: 0.8;
+      font-size: 1.2rem;
+      opacity: 0.9;
     }
 
     .emoji {
-      font-size: 2rem;
-      margin-top: 15px;
+      font-size: 3rem;
+      margin-top: 25px;
       animation: bounce 1s infinite alternate;
     }
 
     @keyframes bounce {
       from { transform: translateY(0); }
-      to { transform: translateY(-10px); }
+      to { transform: translateY(-12px); }
     }
 
     footer {
       position: absolute;
-      bottom: 10px;
+      bottom: 15px;
       width: 100%;
-      font-size: 0.8rem;
-      opacity: 0.7;
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+
+    /* mobiel optimalisatie */
+    @media (max-width: 600px) {
+      .container {
+        padding: 40px;
+        transform: scale(1);
+      }
+
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .time-box {
+        min-width: 90px;
+        padding: 20px;
+      }
+
+      .number {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
@@ -130,14 +159,11 @@ Snack countdown powered by pure snack energy ⚡
 <script>
 function getNextFriday1230Amsterdam() {
   const now = new Date();
-
-  // Maak datum in Amsterdam timezone
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Europe/Amsterdam',
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
-    weekday: 'short',
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
@@ -183,15 +209,17 @@ function updateCountdown() {
     return;
   }
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
+  document.getElementById("days").textContent =
+    Math.floor(diff / (1000*60*60*24));
 
-  document.getElementById("days").textContent = days;
-  document.getElementById("hours").textContent = hours;
-  document.getElementById("minutes").textContent = minutes;
-  document.getElementById("seconds").textContent = seconds;
+  document.getElementById("hours").textContent =
+    Math.floor(diff / (1000*60*60) % 24);
+
+  document.getElementById("minutes").textContent =
+    Math.floor(diff / (1000*60) % 60);
+
+  document.getElementById("seconds").textContent =
+    Math.floor(diff / 1000 % 60);
 }
 
 setInterval(updateCountdown, 1000);
