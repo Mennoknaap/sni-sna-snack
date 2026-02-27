@@ -21,6 +21,7 @@
       color: white;
       text-align: center;
       overflow: hidden;
+      transition: all 0.4s ease;
     }
 
     @keyframes gradientMove {
@@ -29,17 +30,16 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* GROTERE MAIN BOX */
     .container {
       background: rgba(0,0,0,0.45);
       padding: 70px 90px;
       border-radius: 30px;
       backdrop-filter: blur(15px);
-      box-shadow: 
-        0 0 40px rgba(0,0,0,0.6),
-        0 0 80px rgba(255,255,255,0.2);
+      box-shadow: 0 0 40px rgba(0,0,0,0.6),
+                  0 0 80px rgba(255,255,255,0.2);
       animation: float 4s ease-in-out infinite;
       transform: scale(1.15);
+      transition: all 0.4s ease;
     }
 
     @keyframes float {
@@ -47,15 +47,14 @@
       50% { transform: translateY(-15px) scale(1.15); }
     }
 
-    /* GROTERE TITEL */
     h1 {
       font-size: 4.5rem;
       margin-bottom: 35px;
       font-weight: 900;
-      text-shadow: 
-        0 0 10px #fff,
-        0 0 20px #ff00cc,
-        0 0 40px #3333ff;
+      text-shadow: 0 0 10px #fff,
+                   0 0 20px #ff00cc,
+                   0 0 40px #3333ff;
+      transition: all 0.4s ease;
     }
 
     .countdown {
@@ -65,13 +64,13 @@
       flex-wrap: wrap;
     }
 
-    /* GROTERE TIJD BOXEN */
     .time-box {
       background: rgba(255,255,255,0.15);
       padding: 30px;
       border-radius: 20px;
       min-width: 130px;
       box-shadow: 0 0 20px rgba(255,255,255,0.4);
+      transition: all 0.4s ease;
     }
 
     .number {
@@ -103,7 +102,54 @@
       opacity: 0.8;
     }
 
-    /* mobiel optimalisatie */
+    /* ===== NUC MODUS ===== */
+    body.nuc-mode {
+      background: #111;
+      animation: none;
+    }
+
+    body.nuc-mode .container {
+      backdrop-filter: none;
+      box-shadow: none;
+      animation: none;
+      transform: none;
+    }
+
+    body.nuc-mode h1 {
+      text-shadow: none;
+    }
+
+    body.nuc-mode .time-box {
+      box-shadow: none;
+      background: #222;
+    }
+
+    body.nuc-mode .emoji {
+      animation: none;
+    }
+
+    /* Switch styling */
+    .nuc-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.3s;
+    }
+
+    .nuc-toggle:hover {
+      background: rgba(0,0,0,0.8);
+    }
+
+    body.nuc-mode .nuc-toggle {
+      background: #444;
+    }
+
     @media (max-width: 600px) {
       .container {
         padding: 40px;
@@ -126,6 +172,10 @@
   </style>
 </head>
 <body>
+
+<div class="nuc-toggle" onclick="toggleNucMode()">
+  🧊 NUC MODUS
+</div>
 
 <div class="container">
   <h1>SNI SNA SNACKKKK!!!!!!</h1>
@@ -157,40 +207,21 @@ Snack countdown powered by pure snack energy ⚡
 </footer>
 
 <script>
+function toggleNucMode() {
+  document.body.classList.toggle("nuc-mode");
+}
+
+/* Countdown */
 function getNextFriday1230Amsterdam() {
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Amsterdam',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: false
-  });
-
-  const parts = formatter.formatToParts(now);
-  const map = {};
-  parts.forEach(p => map[p.type] = p.value);
-
-  let amsterdamNow = new Date(
-    map.year,
-    map.month - 1,
-    map.day,
-    map.hour,
-    map.minute,
-    map.second
-  );
-
-  let day = amsterdamNow.getDay();
+  let day = now.getDay();
   let daysUntilFriday = (5 - day + 7) % 7;
 
-  let target = new Date(amsterdamNow);
-  target.setDate(amsterdamNow.getDate() + daysUntilFriday);
+  let target = new Date(now);
+  target.setDate(now.getDate() + daysUntilFriday);
   target.setHours(12, 30, 0, 0);
 
-  if (daysUntilFriday === 0 && amsterdamNow > target) {
+  if (daysUntilFriday === 0 && now > target) {
     target.setDate(target.getDate() + 7);
   }
 
