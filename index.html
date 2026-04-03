@@ -206,6 +206,9 @@
 Snack countdown powered by pure snack energy ⚡
 </footer>
 
+<!-- TOEGEVOEGD -->
+<audio id="snackSound" src="Snack.wav"></audio>
+
 <script>
 function toggleNucMode() {
   document.body.classList.toggle("nuc-mode");
@@ -237,6 +240,9 @@ function updateCountdown() {
   if (diff <= 0) {
     document.querySelector(".container").innerHTML =
       "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1>";
+
+    document.getElementById("snackSound").play();
+
     return;
   }
 
