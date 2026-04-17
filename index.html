@@ -102,7 +102,6 @@
       opacity: 0.8;
     }
 
-    /* ===== NUC MODUS ===== */
     body.nuc-mode {
       background: #111;
       animation: none;
@@ -128,7 +127,6 @@
       animation: none;
     }
 
-    /* Switch styling */
     .nuc-toggle {
       position: fixed;
       top: 20px;
@@ -206,43 +204,77 @@
 Snack countdown powered by pure snack energy ⚡
 </footer>
 
-<!-- TOEGEVOEGD -->
 <audio id="snackSound" src="Snack.wav"></audio>
+<audio id="radSound" src="rad.mp3"></audio>
 
 <script>
 function toggleNucMode() {
   document.body.classList.toggle("nuc-mode");
 }
 
-/* Countdown */
-function getNextFriday1230Amsterdam() {
+function getNextFridayTimes() {
   const now = new Date();
   let day = now.getDay();
   let daysUntilFriday = (5 - day + 7) % 7;
 
-  let target = new Date(now);
-  target.setDate(now.getDate() + daysUntilFriday);
-  target.setHours(12, 30, 0, 0);
+  let base = new Date(now);
+  base.setDate(now.getDate() + daysUntilFriday);
 
-  if (daysUntilFriday === 0 && now > target) {
-    target.setDate(target.getDate() + 7);
+  let snackTime = new Date(base);
+  snackTime.setHours(12, 30, 0, 0);
+
+  let beerTime = new Date(base);
+  beerTime.setHours(16, 0, 0, 0);
+
+  let radTime = new Date(base);
+  radTime.setHours(15, 45, 0, 0);
+
+  if (daysUntilFriday === 0 && now > beerTime) {
+    snackTime.setDate(snackTime.getDate() + 7);
+    beerTime.setDate(beerTime.getDate() + 7);
+    radTime.setDate(radTime.getDate() + 7);
   }
 
-  return target;
+  return { snackTime, beerTime, radTime };
 }
 
-const targetDate = getNextFriday1230Amsterdam();
+let times = getNextFridayTimes();
+let radPlayed = false;
 
 function updateCountdown() {
   const now = new Date();
-  const diff = targetDate - now;
+
+  let target;
+  let title = document.querySelector("h1");
+
+  if (now < times.snackTime) {
+    target = times.snackTime;
+    title.textContent = "SNI SNA SNACKKKK!!!!!!";
+  } else if (now >= times.snackTime && now < times.beerTime) {
+    target = times.beerTime;
+    title.textContent = "🍺 BIER AFTELLING 🍺";
+  } else {
+    times = getNextFridayTimes();
+    radPlayed = false;
+    return;
+  }
+
+  if (!radPlayed && now >= times.radTime && now < times.beerTime) {
+    document.getElementById("radSound").play();
+    radPlayed = true;
+  }
+
+  const diff = target - now;
 
   if (diff <= 0) {
-    document.querySelector(".container").innerHTML =
-      "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1>";
-
-    document.getElementById("snackSound").play();
-
+    if (target === times.snackTime) {
+      document.querySelector(".container").innerHTML =
+        "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1>";
+      document.getElementById("snackSound").play();
+    } else {
+      document.querySelector(".container").innerHTML =
+        "<h1>🍺 BIER TIJD!!!! 🍺</h1>";
+    }
     return;
   }
 
