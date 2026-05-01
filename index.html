@@ -54,7 +54,6 @@
       text-shadow: 0 0 10px #fff,
                    0 0 20px #ff00cc,
                    0 0 40px #3333ff;
-      transition: all 0.4s ease;
     }
 
     .countdown {
@@ -70,7 +69,6 @@
       border-radius: 20px;
       min-width: 130px;
       box-shadow: 0 0 20px rgba(255,255,255,0.4);
-      transition: all 0.4s ease;
     }
 
     .number {
@@ -101,117 +99,27 @@
       font-size: 1rem;
       opacity: 0.8;
     }
-
-    body.nuc-mode {
-      background: #111;
-      animation: none;
-    }
-
-    body.nuc-mode .container {
-      backdrop-filter: none;
-      box-shadow: none;
-      animation: none;
-      transform: none;
-    }
-
-    body.nuc-mode h1 {
-      text-shadow: none;
-    }
-
-    body.nuc-mode .time-box {
-      box-shadow: none;
-      background: #222;
-    }
-
-    body.nuc-mode .emoji {
-      animation: none;
-    }
-
-    .nuc-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      padding: 10px 15px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      user-select: none;
-      transition: 0.3s;
-    }
-
-    .nuc-toggle:hover {
-      background: rgba(0,0,0,0.8);
-    }
-
-    body.nuc-mode .nuc-toggle {
-      background: #444;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 40px;
-        transform: scale(1);
-      }
-
-      h1 {
-        font-size: 2.5rem;
-      }
-
-      .time-box {
-        min-width: 90px;
-        padding: 20px;
-      }
-
-      .number {
-        font-size: 2rem;
-      }
-    }
   </style>
 </head>
 <body>
-
-<div class="nuc-toggle" onclick="toggleNucMode()">
-  🧊 NUC MODUS
-</div>
 
 <div class="container">
   <h1>SNI SNA SNACKKKK!!!!!!</h1>
 
   <div class="countdown">
-    <div class="time-box">
-      <div class="number" id="days">0</div>
-      <div class="label">Dagen</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="hours">0</div>
-      <div class="label">Uren</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="minutes">0</div>
-      <div class="label">Minuten</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="seconds">0</div>
-      <div class="label">Seconden</div>
-    </div>
+    <div class="time-box"><div class="number" id="days">0</div><div class="label">Dagen</div></div>
+    <div class="time-box"><div class="number" id="hours">0</div><div class="label">Uren</div></div>
+    <div class="time-box"><div class="number" id="minutes">0</div><div class="label">Minuten</div></div>
+    <div class="time-box"><div class="number" id="seconds">0</div><div class="label">Seconden</div></div>
   </div>
 
   <div class="emoji" id="emoji">🍟🍕🍔🍿</div>
 </div>
 
-<footer>
-Snack countdown powered by pure snack energy ⚡
-</footer>
-
 <audio id="snackSound" src="Snack.wav"></audio>
 <audio id="radSound" src="rad.mp3"></audio>
 
 <script>
-function toggleNucMode() {
-  document.body.classList.toggle("nuc-mode");
-}
-
 function getNextFridayTimes() {
   const now = new Date();
   let day = now.getDay();
@@ -246,7 +154,6 @@ async function getWeatherMessage() {
     const res = await fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=52&longitude=4.23&current_weather=true&timezone=Europe%2FAmsterdam"
     );
-
     const data = await res.json();
     const temp = Math.round(data.current_weather.temperature);
 
@@ -255,8 +162,7 @@ async function getWeatherMessage() {
     } else {
       return `Tijd voor een lekker pintemannetje in de loods 🍺🏭`;
     }
-
-  } catch (e) {
+  } catch {
     return "Tijd voor een lekker pintemannetje 🍺";
   }
 }
@@ -284,23 +190,13 @@ function updateCountdown() {
     }
   } 
   else {
-    const diff = target - now;
-
-    if (diff <= 0) {
-      if (target === times.snackTime) {
-        document.querySelector(".container").innerHTML =
-          "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
-        document.getElementById("snackSound").play();
-      } else {
-        getWeatherMessage().then(msg => {
-          document.querySelector(".container").innerHTML =
-            `<h1>🍺 BIER TIJD!!!! 🍺</h1>
-             <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
-             <div class='emoji'>🍺🍻🔥🍺</div>`;
-        });
-      }
-      return;
-    }
+    // 👉 biermoment trigger (hier hoort hij!)
+    getWeatherMessage().then(msg => {
+      document.querySelector(".container").innerHTML =
+        `<h1>🍺 BIER TIJD!!!! 🍺</h1>
+         <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
+         <div class='emoji'>🍺🍻🔥🍺</div>`;
+    });
 
     times = getNextFridayTimes();
     radPlayed = false;
@@ -319,13 +215,6 @@ function updateCountdown() {
       document.querySelector(".container").innerHTML =
         "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
       document.getElementById("snackSound").play();
-    } else {
-      getWeatherMessage().then(msg => {
-        document.querySelector(".container").innerHTML =
-          `<h1>🍺 BIER TIJD!!!! 🍺</h1>
-           <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
-           <div class='emoji'>🍺🍻🔥🍺</div>`;
-      });
     }
     return;
   }
