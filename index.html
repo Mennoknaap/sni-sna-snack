@@ -241,6 +241,26 @@ function getNextFridayTimes() {
 let times = getNextFridayTimes();
 let radPlayed = false;
 
+async function getWeatherMessage() {
+  try {
+    const res = await fetch(
+      "https://api.open-meteo.com/v1/forecast?latitude=52&longitude=4.23&current_weather=true&timezone=Europe%2FAmsterdam"
+    );
+
+    const data = await res.json();
+    const temp = Math.round(data.current_weather.temperature);
+
+    if (temp >= 22) {
+      return `Het is ${temp}°C. Mooi weer voor een lekker pintemannetje op het dakterras 🍺☀️`;
+    } else {
+      return `Tijd voor een lekker pintemannetje in de loods 🍺🏭`;
+    }
+
+  } catch (e) {
+    return "Tijd voor een lekker pintemannetje 🍺";
+  }
+}
+
 function updateCountdown() {
   const now = new Date();
 
@@ -257,7 +277,6 @@ function updateCountdown() {
     target = times.beerTime;
     title.textContent = "🍺 4 UUR BIER UUR 🍺";
 
-    // 🔥 extra hype richting 16:00
     if (now >= times.radTime) {
       emoji.textContent = "🎡🍺🔥🍻";
     } else {
@@ -265,6 +284,24 @@ function updateCountdown() {
     }
   } 
   else {
+    const diff = target - now;
+
+    if (diff <= 0) {
+      if (target === times.snackTime) {
+        document.querySelector(".container").innerHTML =
+          "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
+        document.getElementById("snackSound").play();
+      } else {
+        getWeatherMessage().then(msg => {
+          document.querySelector(".container").innerHTML =
+            `<h1>🍺 BIER TIJD!!!! 🍺</h1>
+             <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
+             <div class='emoji'>🍺🍻🔥🍺</div>`;
+        });
+      }
+      return;
+    }
+
     times = getNextFridayTimes();
     radPlayed = false;
     return;
@@ -283,8 +320,12 @@ function updateCountdown() {
         "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
       document.getElementById("snackSound").play();
     } else {
-      document.querySelector(".container").innerHTML =
-        "<h1>🍺 BIER TIJD!!!! 🍺</h1><div class='emoji'>🍺🍻🔥🍺</div>";
+      getWeatherMessage().then(msg => {
+        document.querySelector(".container").innerHTML =
+          `<h1>🍺 BIER TIJD!!!! 🍺</h1>
+           <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
+           <div class='emoji'>🍺🍻🔥🍺</div>`;
+      });
     }
     return;
   }
