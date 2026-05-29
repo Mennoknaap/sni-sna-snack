@@ -210,6 +210,14 @@ function toggleNucMode() {
   document.body.classList.toggle("nuc-mode");
 }
 
+const specialDate = new Date(2026, 4, 29, 14, 30, 0);
+const isSpecialDay = () => {
+  const now = new Date();
+  return now.getFullYear() === 2026 &&
+         now.getMonth() === 4 &&
+         now.getDate() === 29;
+};
+
 function getNextFridayTimes() {
   const now = new Date();
   let day = now.getDay();
@@ -264,7 +272,13 @@ function updateCountdown() {
   let title = document.querySelector("h1");
   let emoji = document.getElementById("emoji");
 
-  if (now < times.snackTime) {
+  // ⭐ SPECIAL DAY OVERRIDE
+  if (isSpecialDay()) {
+    target = specialDate;
+    title.textContent = "🎉 WEEKEND WEG KOMT ERAAN 🎉";
+    emoji.textContent = "🍻🚗🎡🍺";
+  } 
+  else if (now < times.snackTime) {
     target = times.snackTime;
     title.textContent = "SNI SNA SNACKKKK!!!!!!";
     emoji.textContent = "🍟🍕🍔🍿";
@@ -293,11 +307,16 @@ function updateCountdown() {
   const diff = target - now;
 
   if (diff <= 0) {
-    if (target === times.snackTime) {
+    if (isSpecialDay()) {
+      document.querySelector(".container").innerHTML =
+        "<h1>🎉 WE GAAN WEG!!!! 🎉</h1><div class='emoji'>🍻🚗🎡🔥</div>";
+    } 
+    else if (target === times.snackTime) {
       document.querySelector(".container").innerHTML =
         "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
-      document.getElementById("snackSound").play();
-    } else if (target === times.beerTime) {
+      // ❌ snack sound UITGESCHAKELD
+    } 
+    else if (target === times.beerTime) {
       getWeatherMessage().then(msg => {
         document.querySelector(".container").innerHTML =
           `<h1>🍺 BIER TIJD!!!! 🍺</h1>
