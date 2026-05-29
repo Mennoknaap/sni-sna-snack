@@ -100,31 +100,6 @@
       opacity: 0.8;
     }
 
-    body.nuc-mode {
-      background: #111;
-      animation: none;
-    }
-
-    body.nuc-mode .container {
-      backdrop-filter: none;
-      box-shadow: none;
-      animation: none;
-      transform: none;
-    }
-
-    body.nuc-mode h1 {
-      text-shadow: none;
-    }
-
-    body.nuc-mode .time-box {
-      box-shadow: none;
-      background: #222;
-    }
-
-    body.nuc-mode .emoji {
-      animation: none;
-    }
-
     .nuc-toggle {
       position: fixed;
       top: 20px;
@@ -135,64 +110,22 @@
       font-size: 0.9rem;
       cursor: pointer;
       user-select: none;
-      transition: 0.3s;
-    }
-
-    .nuc-toggle:hover {
-      background: rgba(0,0,0,0.8);
-    }
-
-    body.nuc-mode .nuc-toggle {
-      background: #444;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 40px;
-        transform: scale(1);
-      }
-
-      h1 {
-        font-size: 2.5rem;
-      }
-
-      .time-box {
-        min-width: 90px;
-        padding: 20px;
-      }
-
-      .number {
-        font-size: 2rem;
-      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="nuc-toggle" onclick="toggleNucMode()">
-  🧊 NUC MODUS
-</div>
+<div class="nuc-toggle" onclick="toggleNucMode()">🧊 NUC MODUS</div>
 
 <div class="container">
   <h1>SNI SNA SNACKKKK!!!!!!</h1>
 
   <div class="countdown">
-    <div class="time-box">
-      <div class="number" id="days">0</div>
-      <div class="label">Dagen</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="hours">0</div>
-      <div class="label">Uren</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="minutes">0</div>
-      <div class="label">Minuten</div>
-    </div>
-    <div class="time-box">
-      <div class="number" id="seconds">0</div>
-      <div class="label">Seconden</div>
-    </div>
+    <div class="time-box"><div class="number" id="days">0</div><div class="label">Dagen</div></div>
+    <div class="time-box"><div class="number" id="hours">0</div><div class="label">Uren</div></div>
+    <div class="time-box"><div class="number" id="minutes">0</div><div class="label">Minuten</div></div>
+    <div class="time-box"><div class="number" id="seconds">0</div><div class="label">Seconden</div></div>
   </div>
 
   <div class="emoji" id="emoji">🍟🍕🍔🍿</div>
@@ -211,12 +144,13 @@ function toggleNucMode() {
 }
 
 const specialDate = new Date(2026, 4, 29, 14, 30, 0);
-const isSpecialDay = () => {
+
+function isSpecialDay() {
   const now = new Date();
   return now.getFullYear() === 2026 &&
          now.getMonth() === 4 &&
          now.getDate() === 29;
-};
+}
 
 function getNextFridayTimes() {
   const now = new Date();
@@ -249,19 +183,15 @@ let radPlayed = false;
 
 async function getWeatherMessage() {
   try {
-    const res = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=52&longitude=4.23&current_weather=true&timezone=Europe%2FAmsterdam"
-    );
+    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=52&longitude=4.23&current_weather=true&timezone=Europe%2FAmsterdam");
     const data = await res.json();
     const temp = Math.round(data.current_weather.temperature);
 
-    if (temp >= 22) {
-      return `Het is ${temp}°C. Mooi weer voor een lekker pintemannetje op het dakterras 🍺☀️`;
-    } else {
-      return `Tijd voor een lekker pintemannetje in de loods 🍺🏭`;
-    }
-  } catch (e) {
-    return "Tijd voor een lekker pintemannetje 🍺";
+    return temp >= 22
+      ? `Het is ${temp}°C. Mooi weer voor een pint 🍺☀️`
+      : `Tijd voor een pint in de loods 🍺🏭`;
+  } catch {
+    return "Tijd voor een pint 🍺";
   }
 }
 
@@ -272,11 +202,20 @@ function updateCountdown() {
   let title = document.querySelector("h1");
   let emoji = document.getElementById("emoji");
 
-  // ⭐ SPECIAL DAY OVERRIDE
+  // ⭐ SPECIAL DAY LOGICA FIX
   if (isSpecialDay()) {
-    target = specialDate;
-    title.textContent = "🎉 WEEKEND WEG KOMT ERAAN 🎉";
-    emoji.textContent = "🍻🚗🎡🍺";
+
+    if (now < times.snackTime) {
+      target = times.snackTime;
+      title.textContent = "SNI SNA SNACKKKK!!!!!!";
+      emoji.textContent = "🍟🍕🍔🍿";
+    } 
+    else {
+      target = specialDate;
+      title.textContent = "🎉 WEEKEND WEG KOMT ERAAN 🎉";
+      emoji.textContent = "🍻🚗🎡🍺";
+    }
+
   } 
   else if (now < times.snackTime) {
     target = times.snackTime;
@@ -286,12 +225,7 @@ function updateCountdown() {
   else if (now >= times.snackTime && now < times.beerTime) {
     target = times.beerTime;
     title.textContent = "🍺 4 UUR BIER UUR 🍺";
-
-    if (now >= times.radTime) {
-      emoji.textContent = "🎡🍺🔥🍻";
-    } else {
-      emoji.textContent = "🍺🍻🍺🍻";
-    }
+    emoji.textContent = now >= times.radTime ? "🎡🍺🔥🍻" : "🍺🍻🍺🍻";
   } 
   else {
     times = getNextFridayTimes();
@@ -299,45 +233,34 @@ function updateCountdown() {
     return;
   }
 
-  if (!radPlayed && now >= times.radTime && now < times.beerTime) {
-    document.getElementById("radSound").play();
-    radPlayed = true;
-  }
-
   const diff = target - now;
 
   if (diff <= 0) {
-    if (isSpecialDay()) {
+
+    if (isSpecialDay() && target === specialDate) {
       document.querySelector(".container").innerHTML =
         "<h1>🎉 WE GAAN WEG!!!! 🎉</h1><div class='emoji'>🍻🚗🎡🔥</div>";
     } 
     else if (target === times.snackTime) {
       document.querySelector(".container").innerHTML =
         "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
-      // ❌ snack sound UITGESCHAKELD
+      // ❌ snack sound blijft UIT
     } 
     else if (target === times.beerTime) {
       getWeatherMessage().then(msg => {
         document.querySelector(".container").innerHTML =
           `<h1>🍺 BIER TIJD!!!! 🍺</h1>
-           <p style="font-size:1.5rem; margin-top:20px;">${msg}</p>
+           <p style="font-size:1.5rem;">${msg}</p>
            <div class='emoji'>🍺🍻🔥🍺</div>`;
       });
     }
     return;
   }
 
-  document.getElementById("days").textContent =
-    Math.floor(diff / (1000*60*60*24));
-
-  document.getElementById("hours").textContent =
-    Math.floor(diff / (1000*60*60) % 24);
-
-  document.getElementById("minutes").textContent =
-    Math.floor(diff / (1000*60) % 60);
-
-  document.getElementById("seconds").textContent =
-    Math.floor(diff / 1000 % 60);
+  document.getElementById("days").textContent = Math.floor(diff / 86400000);
+  document.getElementById("hours").textContent = Math.floor(diff / 3600000 % 24);
+  document.getElementById("minutes").textContent = Math.floor(diff / 60000 % 60);
+  document.getElementById("seconds").textContent = Math.floor(diff / 1000 % 60);
 }
 
 setInterval(updateCountdown, 1000);
