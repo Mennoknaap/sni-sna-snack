@@ -397,7 +397,7 @@ function renderSnackProgress(now) {
     return;
   }
 
-  progressEl.style.display = "";
+  progressEl.style.display = "block";
   const stepTimes = [times.quarterTime, times.step1Time, times.step2Time, times.snackTime];
 
   let currentIndex = 0;
@@ -419,7 +419,7 @@ function renderBeerProgress(now) {
     return;
   }
 
-  progressEl.style.display = "";
+  progressEl.style.display = "block";
   const stepTimes = [times.radTime, times.beerStep1Time, times.beerStep2Time, times.beerStep3Time, times.beerTime];
 
   let currentIndex = 0;
