@@ -192,6 +192,14 @@
     <div class="step" id="step2">💬 Karin is typing...</div>
     <div class="step" id="step3">🍟 SNI SNA SNACK!</div>
   </div>
+
+  <div class="snack-progress" id="beerProgress">
+    <div class="step" id="beerStep0">🎡 Rad wordt gedraaid!</div>
+    <div class="step" id="beerStep1">🧊 Uitverkorenen verzamelen bij de koelkast...</div>
+    <div class="step" id="beerStep2">🍺 Krat wordt gevuld...</div>
+    <div class="step" id="beerStep3">🚶 Uitverkorenen lopen de ronde...</div>
+    <div class="step" id="beerStep4">🥂 Proost!</div>
+  </div>
 </div>
 
 <footer>
@@ -227,6 +235,12 @@ function randomBetween(minMs, maxMs) {
   return minMs + Math.random() * (maxMs - minMs);
 }
 
+function sortedRandomPoints(startDate, endDate, count) {
+  const pts = Array.from({ length: count }, () => randomBetween(startDate.getTime(), endDate.getTime()));
+  pts.sort((a, b) => a - b);
+  return pts.map(ms => new Date(ms));
+}
+
 function getNextFridayTimes() {
   const now = new Date();
   let day = now.getDay();
@@ -249,14 +263,21 @@ function getNextFridayTimes() {
 
   // Two random checkpoints between "kwart over snack" and snack time itself,
   // spread reasonably so the progress steps don't bunch up.
-  let step1Time = new Date(quarterTime.getTime() + randomBetween(2 * 60000, 6 * 60000));
-  let step2Time = new Date(step1Time.getTime() + randomBetween(2 * 60000, 6 * 60000));
-  if (step2Time.getTime() > snackTime.getTime() - 60000) {
-    step2Time = new Date(snackTime.getTime() - 60000);
-  }
+  let [step1Time, step2Time] = sortedRandomPoints(
+    new Date(quarterTime.getTime() + 60000),
+    new Date(snackTime.getTime() - 60000),
+    2
+  );
 
   // Extra toeter somewhere in the 0-30 minutes after the first snack toeter
   let extraToeterTime = new Date(snackTime.getTime() + randomBetween(0, 30 * 60000));
+
+  // Three random checkpoints between "rad wordt gedraaid" and beer time itself
+  let [beerStep1Time, beerStep2Time, beerStep3Time] = sortedRandomPoints(
+    new Date(radTime.getTime() + 30000),
+    new Date(beerTime.getTime() - 30000),
+    3
+  );
 
   if (daysUntilFriday === 0 && now > beerTime) {
     snackTime.setDate(snackTime.getDate() + 7);
@@ -266,9 +287,15 @@ function getNextFridayTimes() {
     step1Time.setDate(step1Time.getDate() + 7);
     step2Time.setDate(step2Time.getDate() + 7);
     extraToeterTime.setDate(extraToeterTime.getDate() + 7);
+    beerStep1Time.setDate(beerStep1Time.getDate() + 7);
+    beerStep2Time.setDate(beerStep2Time.getDate() + 7);
+    beerStep3Time.setDate(beerStep3Time.getDate() + 7);
   }
 
-  return { snackTime, beerTime, radTime, quarterTime, step1Time, step2Time, extraToeterTime };
+  return {
+    snackTime, beerTime, radTime, quarterTime, step1Time, step2Time, extraToeterTime,
+    beerStep1Time, beerStep2Time, beerStep3Time
+  };
 }
 
 let times = getNextFridayTimes();
@@ -383,6 +410,30 @@ function renderSnackProgress(now) {
   });
 }
 
+function renderBeerProgress(now) {
+  const progressEl = document.getElementById("beerProgress");
+
+  if (now < times.radTime || now >= times.beerTime) {
+    progressEl.style.display = "none";
+    return;
+  }
+
+  progressEl.style.display = "";
+  const stepTimes = [times.radTime, times.beerStep1Time, times.beerStep2Time, times.beerStep3Time, times.beerTime];
+
+  let currentIndex = 0;
+  stepTimes.forEach((t, i) => { if (now >= t) currentIndex = i; });
+
+  stepTimes.forEach((t, i) => {
+    const el = document.getElementById("beerStep" + i);
+    el.classList.remove("active", "done");
+    if (i < currentIndex) el.classList.add("done");
+    else if (i === currentIndex) el.classList.add("active");
+  });
+}
+
+const SNACK_REVEAL_DURATION_MS = 6000;
+
 function updateCountdown() {
   const now = new Date();
 
@@ -425,6 +476,16 @@ function updateCountdown() {
   }
 
   renderSnackProgress(now);
+  renderBeerProgress(now);
+
+  const snackRevealEnd = new Date(times.snackTime.getTime() + SNACK_REVEAL_DURATION_MS);
+  if (now >= times.snackTime && now < snackRevealEnd) {
+    countdownEl.style.display = "none";
+    title.textContent = "🍟 HET IS SNACK TIJD!!!! 🍟";
+    emoji.textContent = "🍟🔥🍔🍕";
+    statusMsg.innerHTML = '<img src="run.gif" alt="RUN!!!" style="max-width:220px;border-radius:12px;margin-top:10px;">';
+    return;
+  }
 
   if (isSpecialDay() && now >= times.snackTime) {
     if (now < specialDate) {
