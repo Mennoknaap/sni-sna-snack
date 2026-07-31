@@ -209,6 +209,7 @@ Snack countdown powered by pure snack energy ⚡
 <audio id="snackSound" src="Snack.wav"></audio>
 <audio id="radSound" src="rad.mp3"></audio>
 <audio id="quarterSound" src="kwart-over-snack.mp3"></audio>
+<audio id="proostSound" src="proost.mp3"></audio>
 
 <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
 
@@ -461,6 +462,7 @@ function updateCountdown() {
   if (!beerPlayed && now >= times.beerTime) {
     beerPlayed = true;
     launchConfetti();
+    document.getElementById("proostSound").play();
     statusMsg.textContent = "Tijd voor een pint 🍺";
     getWeatherMessage().then(msg => { statusMsg.textContent = msg; });
   }
