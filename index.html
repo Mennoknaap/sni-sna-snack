@@ -111,6 +111,35 @@
       cursor: pointer;
       user-select: none;
     }
+
+    body.nuc-mode {
+      background: #111;
+      animation: none;
+    }
+
+    body.nuc-mode .container {
+      backdrop-filter: none;
+      box-shadow: none;
+      animation: none;
+      transform: none;
+    }
+
+    body.nuc-mode h1 {
+      text-shadow: none;
+    }
+
+    body.nuc-mode .time-box {
+      box-shadow: none;
+      background: #222;
+    }
+
+    body.nuc-mode .emoji {
+      animation: none;
+    }
+
+    body.nuc-mode .nuc-toggle {
+      background: #444;
+    }
   </style>
 </head>
 
@@ -129,6 +158,7 @@
   </div>
 
   <div class="emoji" id="emoji">🍟🍕🍔🍿</div>
+  <p id="statusMsg" style="font-size:1.3rem; min-height: 1.6rem; margin-top: 15px;"></p>
 </div>
 
 <footer>
@@ -138,9 +168,16 @@ Snack countdown powered by pure snack energy ⚡
 <audio id="snackSound" src="Snack.wav"></audio>
 <audio id="radSound" src="rad.mp3"></audio>
 
+<canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
+
 <script>
 function toggleNucMode() {
-  document.body.classList.toggle("nuc-mode");
+  const isNuc = document.body.classList.toggle("nuc-mode");
+  localStorage.setItem("nucMode", isNuc ? "1" : "0");
+}
+
+if (localStorage.getItem("nucMode") === "1") {
+  document.body.classList.add("nuc-mode");
 }
 
 const specialDate = new Date(2026, 4, 29, 14, 30, 0);
@@ -180,6 +217,61 @@ function getNextFridayTimes() {
 
 let times = getNextFridayTimes();
 let radPlayed = false;
+let snackPlayed = false;
+let beerPlayed = false;
+
+const confettiCanvas = document.getElementById("confettiCanvas");
+const confettiCtx = confettiCanvas.getContext("2d");
+let confettiPieces = [];
+let confettiRunning = false;
+
+function launchConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+
+  const colors = ["#ff00cc", "#3333ff", "#00ffee", "#ffcc00", "#ffffff"];
+  confettiPieces = Array.from({ length: 150 }, () => ({
+    x: Math.random() * confettiCanvas.width,
+    y: -20 - Math.random() * confettiCanvas.height * 0.5,
+    size: 6 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speedY: 2 + Math.random() * 3,
+    speedX: -2 + Math.random() * 4,
+    rotation: Math.random() * 360,
+    spin: -6 + Math.random() * 12
+  }));
+
+  if (!confettiRunning) {
+    confettiRunning = true;
+    requestAnimationFrame(animateConfetti);
+  }
+
+  setTimeout(() => { confettiPieces = []; }, 4000);
+}
+
+function animateConfetti() {
+  confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+  confettiPieces.forEach(p => {
+    p.y += p.speedY;
+    p.x += p.speedX;
+    p.rotation += p.spin;
+
+    confettiCtx.save();
+    confettiCtx.translate(p.x, p.y);
+    confettiCtx.rotate(p.rotation * Math.PI / 180);
+    confettiCtx.fillStyle = p.color;
+    confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    confettiCtx.restore();
+  });
+
+  if (confettiPieces.length > 0) {
+    requestAnimationFrame(animateConfetti);
+  } else {
+    confettiRunning = false;
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  }
+}
 
 async function getWeatherMessage() {
   try {
@@ -195,72 +287,86 @@ async function getWeatherMessage() {
   }
 }
 
-function updateCountdown() {
-  const now = new Date();
-
-  let target;
-  let title = document.querySelector("h1");
-  let emoji = document.getElementById("emoji");
-
-  // ⭐ SPECIAL DAY LOGICA FIX
-  if (isSpecialDay()) {
-
-    if (now < times.snackTime) {
-      target = times.snackTime;
-      title.textContent = "SNI SNA SNACKKKK!!!!!!";
-      emoji.textContent = "🍟🍕🍔🍿";
-    } 
-    else {
-      target = specialDate;
-      title.textContent = "🎉 WEEKEND WEG KOMT ERAAN 🎉";
-      emoji.textContent = "🍻🚗🎡🍺";
-    }
-
-  } 
-  else if (now < times.snackTime) {
-    target = times.snackTime;
-    title.textContent = "SNI SNA SNACKKKK!!!!!!";
-    emoji.textContent = "🍟🍕🍔🍿";
-  } 
-  else if (now >= times.snackTime && now < times.beerTime) {
-    target = times.beerTime;
-    title.textContent = "🍺 4 UUR BIER UUR 🍺";
-    emoji.textContent = now >= times.radTime ? "🎡🍺🔥🍻" : "🍺🍻🍺🍻";
-  } 
-  else {
-    times = getNextFridayTimes();
-    radPlayed = false;
-    return;
-  }
-
-  const diff = target - now;
-
-  if (diff <= 0) {
-
-    if (isSpecialDay() && target === specialDate) {
-      document.querySelector(".container").innerHTML =
-        "<h1>🎉 WE GAAN WEG!!!! 🎉</h1><div class='emoji'>🍻🚗🎡🔥</div>";
-    } 
-    else if (target === times.snackTime) {
-      document.querySelector(".container").innerHTML =
-        "<h1>🍟 HET IS SNACK TIJD!!!! 🍟</h1><div class='emoji'>🍟🍔🔥🍕</div>";
-      // ❌ snack sound blijft UIT
-    } 
-    else if (target === times.beerTime) {
-      getWeatherMessage().then(msg => {
-        document.querySelector(".container").innerHTML =
-          `<h1>🍺 BIER TIJD!!!! 🍺</h1>
-           <p style="font-size:1.5rem;">${msg}</p>
-           <div class='emoji'>🍺🍻🔥🍺</div>`;
-      });
-    }
-    return;
-  }
-
+function renderDiff(diff) {
   document.getElementById("days").textContent = Math.floor(diff / 86400000);
   document.getElementById("hours").textContent = Math.floor(diff / 3600000 % 24);
   document.getElementById("minutes").textContent = Math.floor(diff / 60000 % 60);
   document.getElementById("seconds").textContent = Math.floor(diff / 1000 % 60);
+}
+
+function resetCycle() {
+  times = getNextFridayTimes();
+  radPlayed = false;
+  snackPlayed = false;
+  beerPlayed = false;
+}
+
+function updateCountdown() {
+  const now = new Date();
+
+  const title = document.querySelector("h1");
+  const emoji = document.getElementById("emoji");
+  const statusMsg = document.getElementById("statusMsg");
+  const countdownEl = document.querySelector(".countdown");
+
+  // Once the whole Friday cycle (incl. beer time) is over, roll over to next week
+  if (now >= times.beerTime && now.toDateString() !== times.beerTime.toDateString()) {
+    resetCycle();
+  }
+
+  // One-time reveal triggers — fire exactly once when their moment is reached,
+  // independent from whichever countdown phase is currently on screen.
+  if (!snackPlayed && now >= times.snackTime) {
+    snackPlayed = true;
+    document.getElementById("snackSound").play();
+    launchConfetti();
+  }
+  if (!radPlayed && now >= times.radTime) {
+    radPlayed = true;
+    document.getElementById("radSound").play();
+  }
+  if (!beerPlayed && now >= times.beerTime) {
+    beerPlayed = true;
+    launchConfetti();
+    statusMsg.textContent = "Tijd voor een pint 🍺";
+    getWeatherMessage().then(msg => { statusMsg.textContent = msg; });
+  }
+
+  if (isSpecialDay() && now >= times.snackTime) {
+    if (now < specialDate) {
+      countdownEl.style.display = "";
+      title.textContent = "🎉 WEEKEND WEG KOMT ERAAN 🎉";
+      emoji.textContent = "🍻🚗🎡🍺";
+      statusMsg.textContent = "";
+      renderDiff(specialDate - now);
+    } else {
+      countdownEl.style.display = "none";
+      title.textContent = "🎉 WE GAAN WEG!!!! 🎉";
+      emoji.textContent = "🍻🚗🎡🔥";
+      statusMsg.textContent = "";
+    }
+    return;
+  }
+
+  if (now < times.snackTime) {
+    countdownEl.style.display = "";
+    title.textContent = "SNI SNA SNACKKKK!!!!!!";
+    emoji.textContent = "🍟🍕🍔🍿";
+    statusMsg.textContent = "";
+    renderDiff(times.snackTime - now);
+  }
+  else if (now < times.beerTime) {
+    countdownEl.style.display = "";
+    title.textContent = "🍺 4 UUR BIER UUR 🍺";
+    emoji.textContent = now >= times.radTime ? "🎡🍺🔥🍻" : "🍺🍻🍺🍻";
+    statusMsg.textContent = "🍟 Snacktijd was net! Nu op naar het biertje 🍺";
+    renderDiff(times.beerTime - now);
+  }
+  else {
+    countdownEl.style.display = "none";
+    title.textContent = "🍺 BIER TIJD!!!! 🍺";
+    emoji.textContent = "🍺🍻🔥🍺";
+  }
 }
 
 setInterval(updateCountdown, 1000);
