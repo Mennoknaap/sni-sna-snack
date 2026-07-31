@@ -140,6 +140,32 @@
     body.nuc-mode .nuc-toggle {
       background: #444;
     }
+
+    .snack-progress {
+      display: none;
+      margin-top: 20px;
+      text-align: left;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 1.05rem;
+    }
+
+    .snack-progress .step {
+      padding: 4px 0;
+      opacity: 0.35;
+      transition: opacity 0.3s ease;
+    }
+
+    .snack-progress .step.active {
+      opacity: 1;
+      font-weight: 600;
+    }
+
+    .snack-progress .step.done {
+      opacity: 0.7;
+      text-decoration: line-through;
+    }
   </style>
 </head>
 
@@ -159,6 +185,13 @@
 
   <div class="emoji" id="emoji">🍟🍕🍔🍿</div>
   <p id="statusMsg" style="font-size:1.3rem; min-height: 1.6rem; margin-top: 15px;"></p>
+
+  <div class="snack-progress" id="snackProgress">
+    <div class="step" id="step0">🚚 Snackdelivery is onderweg...</div>
+    <div class="step" id="step1">📦 Snack wordt klaargelegd...</div>
+    <div class="step" id="step2">💬 Karin is typing...</div>
+    <div class="step" id="step3">🍟 SNI SNA SNACK!</div>
+  </div>
 </div>
 
 <footer>
@@ -167,6 +200,7 @@ Snack countdown powered by pure snack energy ⚡
 
 <audio id="snackSound" src="Snack.wav"></audio>
 <audio id="radSound" src="rad.mp3"></audio>
+<audio id="quarterSound" src="kwart-over-snack.mp3"></audio>
 
 <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
 
@@ -189,6 +223,10 @@ function isSpecialDay() {
          now.getDate() === 29;
 }
 
+function randomBetween(minMs, maxMs) {
+  return minMs + Math.random() * (maxMs - minMs);
+}
+
 function getNextFridayTimes() {
   const now = new Date();
   let day = now.getDay();
@@ -206,19 +244,39 @@ function getNextFridayTimes() {
   let radTime = new Date(base);
   radTime.setHours(15, 45, 0, 0);
 
+  let quarterTime = new Date(base);
+  quarterTime.setHours(12, 15, 0, 0);
+
+  // Two random checkpoints between "kwart over snack" and snack time itself,
+  // spread reasonably so the progress steps don't bunch up.
+  let step1Time = new Date(quarterTime.getTime() + randomBetween(2 * 60000, 6 * 60000));
+  let step2Time = new Date(step1Time.getTime() + randomBetween(2 * 60000, 6 * 60000));
+  if (step2Time.getTime() > snackTime.getTime() - 60000) {
+    step2Time = new Date(snackTime.getTime() - 60000);
+  }
+
+  // Extra toeter somewhere in the 0-30 minutes after the first snack toeter
+  let extraToeterTime = new Date(snackTime.getTime() + randomBetween(0, 30 * 60000));
+
   if (daysUntilFriday === 0 && now > beerTime) {
     snackTime.setDate(snackTime.getDate() + 7);
     beerTime.setDate(beerTime.getDate() + 7);
     radTime.setDate(radTime.getDate() + 7);
+    quarterTime.setDate(quarterTime.getDate() + 7);
+    step1Time.setDate(step1Time.getDate() + 7);
+    step2Time.setDate(step2Time.getDate() + 7);
+    extraToeterTime.setDate(extraToeterTime.getDate() + 7);
   }
 
-  return { snackTime, beerTime, radTime };
+  return { snackTime, beerTime, radTime, quarterTime, step1Time, step2Time, extraToeterTime };
 }
 
 let times = getNextFridayTimes();
 let radPlayed = false;
 let snackPlayed = false;
 let beerPlayed = false;
+let quarterAnnounced = false;
+let extraToeterPlayed = false;
 
 const confettiCanvas = document.getElementById("confettiCanvas");
 const confettiCtx = confettiCanvas.getContext("2d");
@@ -299,6 +357,30 @@ function resetCycle() {
   radPlayed = false;
   snackPlayed = false;
   beerPlayed = false;
+  quarterAnnounced = false;
+  extraToeterPlayed = false;
+}
+
+function renderSnackProgress(now) {
+  const progressEl = document.getElementById("snackProgress");
+
+  if (now < times.quarterTime || now >= times.snackTime) {
+    progressEl.style.display = "none";
+    return;
+  }
+
+  progressEl.style.display = "";
+  const stepTimes = [times.quarterTime, times.step1Time, times.step2Time, times.snackTime];
+
+  let currentIndex = 0;
+  stepTimes.forEach((t, i) => { if (now >= t) currentIndex = i; });
+
+  stepTimes.forEach((t, i) => {
+    const el = document.getElementById("step" + i);
+    el.classList.remove("active", "done");
+    if (i < currentIndex) el.classList.add("done");
+    else if (i === currentIndex) el.classList.add("active");
+  });
 }
 
 function updateCountdown() {
@@ -331,6 +413,18 @@ function updateCountdown() {
     statusMsg.textContent = "Tijd voor een pint 🍺";
     getWeatherMessage().then(msg => { statusMsg.textContent = msg; });
   }
+  if (!quarterAnnounced && now >= times.quarterTime) {
+    quarterAnnounced = true;
+    document.getElementById("quarterSound").play();
+  }
+  if (!extraToeterPlayed && now >= times.extraToeterTime) {
+    extraToeterPlayed = true;
+    const extraToeter = document.getElementById("snackSound");
+    extraToeter.currentTime = 0;
+    extraToeter.play();
+  }
+
+  renderSnackProgress(now);
 
   if (isSpecialDay() && now >= times.snackTime) {
     if (now < specialDate) {
